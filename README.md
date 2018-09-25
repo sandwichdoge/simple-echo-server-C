@@ -1,2 +1,8 @@
 # simple-echo-server-C
-TCP echo server with multi-connection support.
+Simple TCP echo server with multi-connection support.
+
+Compile and run
+
+```
+gcc -lpthread echo_server_tcp.c && ./a.out
+```
