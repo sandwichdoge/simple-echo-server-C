@@ -13,6 +13,7 @@
 
 struct server_socket {
     int fd;
+    socklen_t len;
     struct sockaddr_in *handle;
 };
 
@@ -25,12 +26,11 @@ int main()
     int port = 12345;
     int new_fd = 0;
     struct server_socket sock = create_server_socket(port);
-    socklen_t slen = sizeof(struct sockaddr_in);
     pthread_t pthread;
 
     printf("Listening on port %d\n", port);
     while (1) {
-        new_fd = accept(sock.fd, (struct sockaddr*)sock.handle, &slen);
+        new_fd = accept(sock.fd, (struct sockaddr*)sock.handle, &sock.len);
         if (new_fd > 0) {
             pthread_create(&pthread, NULL, conn_handler, &new_fd); //create a thread for each new connection
         }
@@ -51,6 +51,8 @@ struct server_socket create_server_socket(int port)
     server.sin_port = htons(port);
     server.sin_addr.s_addr = INADDR_ANY;
 
+    socklen_t len = sizeof(server);
+
     int fd = socket(AF_INET, SOCK_STREAM, 0); //Inet TCP
     if (!fd) printf("error creating socket\n");
     int opt = 1;
@@ -61,6 +63,7 @@ struct server_socket create_server_socket(int port)
     if (err < 0) printf("error listening\n");
 
     ret.fd = fd;
+    ret.len = len;
     ret.handle = &server;
     return ret;
 }
