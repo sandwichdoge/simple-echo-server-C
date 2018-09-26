@@ -8,7 +8,7 @@ Compile and run
 gcc -lpthread echo_server_tcp.c && ./a.out
 ```
 
-Client
+- Client
 ```
 gcc tcp_client.c -o client && ./client
 ```
