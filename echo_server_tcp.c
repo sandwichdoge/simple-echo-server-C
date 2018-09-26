@@ -5,6 +5,7 @@
 #include <sys/socket.h> //socket stuff
 #include <netinet/in.h> //INADDR_ANY
 #include <pthread.h> //multi-connection
+#include <string.h> //memset()
 
 /*Creating socket server in C:
  *socket() -> setsocketopt() -> bind() -> listen() -> accept()
@@ -72,16 +73,28 @@ struct server_socket create_server_socket(int port)
 void *conn_handler(void *fd)
 {
     char buf[2048] = "";
-    char msg[64] = "Welcome to echo server 1!\n";
+    char msg[64] = "Welcome to echo server 1!\nEnter 'exit' to disconnect.";
     int client_fd = *(int*)fd;
     printf("Client connected, fd: %d\n", client_fd);
     write(client_fd, msg, sizeof(msg)); //send welcome message
 
-    read(client_fd, buf, sizeof(buf));  //get message from client
-    printf("Echoing: %s", buf);
-    write(client_fd, buf, sizeof(buf)); //echo it back to client
+    while (1) {
+        read(client_fd, buf, sizeof(buf));  //get message from client
+        if (buf[0] != 0) {
+            if (strcmp(buf, "exit") == 0) {
+                strcpy(buf, "Disconnected.\n");
+                write(client_fd, buf, sizeof(buf)); //send disconnect msg to client
+                break; //break if "exit" message is received
+            }
+            printf("Echoing: %s\n", buf);
+            fflush(stdout);
+            write(client_fd, buf, sizeof(buf)); //echo it back to client
+            memset(buf, 0, sizeof(buf));
+        }
+    }
 
     printf("Shutting down client: %d\n", client_fd);
     fflush(stdout);
     shutdown(client_fd, 2); //shutdown connection
+    close(client_fd);
 }
